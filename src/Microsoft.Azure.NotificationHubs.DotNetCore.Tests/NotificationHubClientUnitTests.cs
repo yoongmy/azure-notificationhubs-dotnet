@@ -92,13 +92,23 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidAdmTemplateRegistration_GetCreatedRegistrationBack()
         {
-            var registration = new AdmTemplateRegistrationDescription(_configuration["AdmDeviceToken"], "{\"data\":{\"key1\":\"value1\"}}");
-            registration.PushVariables = new Dictionary<string, string>()
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                {"var1", "value1"}
+                Content = new StringContent(
+                    @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8536489232329389202-7020937479475399572-1?api-version=2017-04</id><title type=""text"">8536489232329389202-7020937479475399572-1</title><published>2018-11-06T16:34:10Z</published><updated>2018-11-06T16:34:10Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8536489232329389202-7020937479475399572-1?api-version=2017-04""/><content type=""application/xml""><AdmTemplateRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>8536489232329389202-7020937479475399572-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId><BodyTemplate><![CDATA[{""data"":{""key1"":""value1""}}]]></BodyTemplate><TemplateName>Template Name</TemplateName></AdmTemplateRegistrationDescription></content></entry>")
             };
-            registration.Tags = new HashSet<string>() { "tag1" };
-            registration.TemplateName = "Template Name";
+
+            WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(
+                    @"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><AdmTemplateRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId><BodyTemplate><![CDATA[{""data"":{""key1"":""value1""}}]]></BodyTemplate><TemplateName>Template Name</TemplateName></AdmTemplateRegistrationDescription></content></entry>")
+                .Respond(_ => response);
+
+            var registration = new AdmTemplateRegistrationDescription(AdmDeviceToken, "{\"data\":{\"key1\":\"value1\"}}")
+            {
+                PushVariables = new Dictionary<string, string>() {{"var1", "value1"}},
+                Tags = new HashSet<string> {"tag1"},
+                TemplateName = "Template Name"
+            };
 
             var createdRegistration = await _hubClient.CreateRegistrationAsync(registration);
 
