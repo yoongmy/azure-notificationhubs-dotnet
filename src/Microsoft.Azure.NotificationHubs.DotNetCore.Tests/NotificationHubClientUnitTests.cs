@@ -70,6 +70,7 @@ namespace Microsoft.Azure.NotificationHubs.Tests
             };
 
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(@"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><AdmRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId></AdmRegistrationDescription></content></entry>")
                 .Respond(_ => response);
 
             var registration = new AdmRegistrationDescription(AdmDeviceToken)
