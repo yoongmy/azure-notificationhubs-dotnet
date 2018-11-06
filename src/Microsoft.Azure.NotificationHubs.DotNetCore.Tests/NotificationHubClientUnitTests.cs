@@ -31,7 +31,9 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         private const string AuthorizationScheme = "SharedAccessSignature";
         private const string AuthorizationParameterRegex =
             @"sr=http%3a%2f%2fsdk-unit-tests-namespace\.servicebus\.windows\.net%2fsdk-unit-tests-hub%2fregistrations%2f&sig=[^=]+=\d+&skn=DefaultFullSharedAccessSignature";
+
         private const string AdmDeviceToken = "amzn1.adm-registration.v2.123";
+        private const string AppleDeviceToken = "1111111111111111111111111111111111111111111111111111111111111111";
 
         private readonly IConfigurationRoot _configuration;
         private readonly NotificationHubClient _hubClient;
@@ -125,12 +127,22 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidAppleNativeRegistration_GetCreatedRegistrationBack()
         {
-            var registration = new AppleRegistrationDescription(_configuration["AppleDeviceToken"]);
-            registration.PushVariables = new Dictionary<string, string>()
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                {"var1", "value1"}
+                Content = new StringContent(
+                    @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/2772199343190529178-5408359458679310168-2?api-version=2017-04</id><title type=""text"">2772199343190529178-5408359458679310168-2</title><published>2018-11-06T16:44:09Z</published><updated>2018-11-06T16:44:09Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/2772199343190529178-5408359458679310168-2?api-version=2017-04""/><content type=""application/xml""><AppleRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>2772199343190529178-5408359458679310168-2</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken></AppleRegistrationDescription></content></entry>")
             };
-            registration.Tags = new HashSet<string>() { "tag1" };
+
+            WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(
+                    @"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><AppleRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken></AppleRegistrationDescription></content></entry>")
+                .Respond(_ => response);
+
+            var registration = new AppleRegistrationDescription(AppleDeviceToken)
+            {
+                PushVariables = new Dictionary<string, string> {{"var1", "value1"}},
+                Tags = new HashSet<string> {"tag1"}
+            };
 
             var createdRegistration = await _hubClient.CreateRegistrationAsync(registration);
 
