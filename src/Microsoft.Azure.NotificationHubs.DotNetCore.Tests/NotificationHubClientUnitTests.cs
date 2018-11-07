@@ -37,6 +37,7 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         private const string BaiduUserId = "userId";
         private const string BaiduChannelId = "channelId";
         private const string GcmDeviceToken = "gcm.registration.v2.123";
+        private const string MpnsDeviceToken = "https://some.url";
 
         private readonly IConfigurationRoot _configuration;
         private readonly NotificationHubClient _hubClient;
@@ -297,7 +298,7 @@ namespace Microsoft.Azure.NotificationHubs.Tests
                 new GcmTemplateRegistrationDescription(GcmDeviceToken, "{\"data\":{\"message\":\"Message\"}}")
                 {
                     PushVariables = new Dictionary<string, string> {{"var1", "value1"}},
-                    Tags = new HashSet<string>() {"tag1"},
+                    Tags = new HashSet<string> {"tag1"},
                     TemplateName = "Template Name"
                 };
 
@@ -316,13 +317,22 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidMpnsNativeRegistration_GetCreatedRegistrationBack()
         {
-            var registration = new MpnsRegistrationDescription(_configuration["MpnsDeviceToken"]);
-            registration.PushVariables = new Dictionary<string, string>()
+            WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(
+                    @"")
+                .Respond(_ =>
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"")
+                    });
+
+            var registration = new MpnsRegistrationDescription(MpnsDeviceToken)
             {
-                {"var1", "value1"}
+                PushVariables = new Dictionary<string, string> {{"var1", "value1"}},
+                Tags = new HashSet<string> {"tag1"},
+                SecondaryTileName = "Tile name"
             };
-            registration.Tags = new HashSet<string>() { "tag1" };
-            registration.SecondaryTileName = "Tile name";
 
             var createdRegistration = await _hubClient.CreateRegistrationAsync(registration);
 
