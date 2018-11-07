@@ -416,14 +416,25 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidWindowsTemplateRegistration_GetCreatedRegistrationBack()
         {
-            var registration = new WindowsTemplateRegistrationDescription(_configuration["WindowsDeviceToken"], "<toast><visual><binding template=\"ToastText01\"><text id=\"1\">bodyText</text></binding>  </visual></toast>", new[] { "tag1" });
-            registration.PushVariables = new Dictionary<string, string>()
-            {
-                {"var1", "value1"}
-            };
-            registration.Tags = new HashSet<string>() { "tag1" };
-            registration.SecondaryTileName = "Tile name";
-            registration.TemplateName = "Template Name";
+            WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(
+                    @"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><WindowsTemplateRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><ChannelUri>https://some.url/</ChannelUri><SecondaryTileName>Tile name</SecondaryTileName><BodyTemplate><![CDATA[<toast><visual><binding template=""ToastText01""><text id=""1"">bodyText</text></binding>  </visual></toast>]]></BodyTemplate><WnsHeaders><WnsHeader><Header>X-WNS-Type</Header><Value>wns/toast</Value></WnsHeader></WnsHeaders><TemplateName>Template Name</TemplateName></WindowsTemplateRegistrationDescription></content></entry>")
+                .Respond(_ =>
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/3926080843725088864-741560045292641332-1?api-version=2017-04</id><title type=""text"">3926080843725088864-741560045292641332-1</title><published>2018-11-07T13:32:13Z</published><updated>2018-11-07T13:32:13Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/3926080843725088864-741560045292641332-1?api-version=2017-04""/><content type=""application/xml""><WindowsTemplateRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>3926080843725088864-741560045292641332-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><ChannelUri>https://some.url/</ChannelUri><SecondaryTileName>Tile name</SecondaryTileName><BodyTemplate><![CDATA[<toast><visual><binding template=""ToastText01""><text id=""1"">bodyText</text></binding>  </visual></toast>]]></BodyTemplate><WnsHeaders><WnsHeader><Header>X-WNS-Type</Header><Value>wns/toast</Value></WnsHeader></WnsHeaders><TemplateName>Template Name</TemplateName></WindowsTemplateRegistrationDescription></content></entry>")
+                    });
+
+            var registration = new WindowsTemplateRegistrationDescription(WindowsDeviceToken,
+                "<toast><visual><binding template=\"ToastText01\"><text id=\"1\">bodyText</text></binding>  </visual></toast>",
+                new[] {"tag1"})
+                {
+                    PushVariables = new Dictionary<string, string> {{"var1", "value1"}},
+                    Tags = new HashSet<string> {"tag1"},
+                    SecondaryTileName = "Tile name",
+                    TemplateName = "Template Name"
+                };
 
             var createdRegistration = await _hubClient.CreateRegistrationAsync(registration);
 
