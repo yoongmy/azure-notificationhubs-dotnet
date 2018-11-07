@@ -348,13 +348,25 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidMpnsTemplateRegistration_GetCreatedRegistrationBack()
         {
-            var registration = new MpnsTemplateRegistrationDescription(_configuration["MpnsDeviceToken"], "<wp:Notification xmlns:wp=\"WPNotification\" Version=\"2.0\"><wp:Tile Id=\"TileId\" Template=\"IconicTile\"><wp:Title Action=\"Clear\">Title</wp:Title></wp:Tile></wp:Notification>", new[] { "tag1" });
-            registration.PushVariables = new Dictionary<string, string>()
-            {
-                {"var1", "value1"}
-            };
-            registration.SecondaryTileName = "Tile name";
-            registration.TemplateName = "Template Name";
+            WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(
+                    @"")
+                .Respond(_ =>
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"")
+                    });
+
+            var registration = new MpnsTemplateRegistrationDescription(
+                MpnsDeviceToken,
+                "<wp:Notification xmlns:wp=\"WPNotification\" Version=\"2.0\"><wp:Tile Id=\"TileId\" Template=\"IconicTile\"><wp:Title Action=\"Clear\">Title</wp:Title></wp:Tile></wp:Notification>",
+                new[] {"tag1"})
+                {
+                    PushVariables = new Dictionary<string, string> {{"var1", "value1"}},
+                    SecondaryTileName = "Tile name",
+                    TemplateName = "Template Name"
+                };
 
             var createdRegistration = await _hubClient.CreateRegistrationAsync(registration);
 
