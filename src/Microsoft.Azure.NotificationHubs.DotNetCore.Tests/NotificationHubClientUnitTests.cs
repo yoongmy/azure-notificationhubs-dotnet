@@ -68,15 +68,14 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidAdmNativeRegistration_GetCreatedRegistrationBack()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/3648713736635612734-1576008139854428372-1?api-version=2017-04</id><title type=""text"">3648713736635612734-1576008139854428372-1</title><published>2018-11-06T14:09:58Z</published><updated>2018-11-06T14:09:58Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/3648713736635612734-1576008139854428372-1?api-version=2017-04""/><content type=""application/xml""><AdmRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>3648713736635612734-1576008139854428372-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId></AdmRegistrationDescription></content></entry>")
-            };
-
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
                 .WithContent(@"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><AdmRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId></AdmRegistrationDescription></content></entry>")
-                .Respond(_ => response);
+                .Respond(_ => 
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/3648713736635612734-1576008139854428372-1?api-version=2017-04</id><title type=""text"">3648713736635612734-1576008139854428372-1</title><published>2018-11-06T14:09:58Z</published><updated>2018-11-06T14:09:58Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/3648713736635612734-1576008139854428372-1?api-version=2017-04""/><content type=""application/xml""><AdmRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>3648713736635612734-1576008139854428372-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId></AdmRegistrationDescription></content></entry>")
+                    });
 
             var registration = new AdmRegistrationDescription(AdmDeviceToken)
             {
@@ -97,16 +96,15 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidAdmTemplateRegistration_GetCreatedRegistrationBack()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8536489232329389202-7020937479475399572-1?api-version=2017-04</id><title type=""text"">8536489232329389202-7020937479475399572-1</title><published>2018-11-06T16:34:10Z</published><updated>2018-11-06T16:34:10Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8536489232329389202-7020937479475399572-1?api-version=2017-04""/><content type=""application/xml""><AdmTemplateRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>8536489232329389202-7020937479475399572-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId><BodyTemplate><![CDATA[{""data"":{""key1"":""value1""}}]]></BodyTemplate><TemplateName>Template Name</TemplateName></AdmTemplateRegistrationDescription></content></entry>")
-            };
-
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
                 .WithContent(
                     @"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><AdmTemplateRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId><BodyTemplate><![CDATA[{""data"":{""key1"":""value1""}}]]></BodyTemplate><TemplateName>Template Name</TemplateName></AdmTemplateRegistrationDescription></content></entry>")
-                .Respond(_ => response);
+                .Respond(_ =>
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8536489232329389202-7020937479475399572-1?api-version=2017-04</id><title type=""text"">8536489232329389202-7020937479475399572-1</title><published>2018-11-06T16:34:10Z</published><updated>2018-11-06T16:34:10Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8536489232329389202-7020937479475399572-1?api-version=2017-04""/><content type=""application/xml""><AdmTemplateRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>8536489232329389202-7020937479475399572-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><AdmRegistrationId>amzn1.adm-registration.v2.123</AdmRegistrationId><BodyTemplate><![CDATA[{""data"":{""key1"":""value1""}}]]></BodyTemplate><TemplateName>Template Name</TemplateName></AdmTemplateRegistrationDescription></content></entry>")
+                    });
 
             var registration = new AdmTemplateRegistrationDescription(AdmDeviceToken, "{\"data\":{\"key1\":\"value1\"}}")
             {
@@ -130,16 +128,15 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidAppleNativeRegistration_GetCreatedRegistrationBack()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/2772199343190529178-5408359458679310168-2?api-version=2017-04</id><title type=""text"">2772199343190529178-5408359458679310168-2</title><published>2018-11-06T16:44:09Z</published><updated>2018-11-06T16:44:09Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/2772199343190529178-5408359458679310168-2?api-version=2017-04""/><content type=""application/xml""><AppleRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>2772199343190529178-5408359458679310168-2</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken></AppleRegistrationDescription></content></entry>")
-            };
-
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
                 .WithContent(
                     @"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><AppleRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken></AppleRegistrationDescription></content></entry>")
-                .Respond(_ => response);
+                .Respond(_ => 
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/2772199343190529178-5408359458679310168-2?api-version=2017-04</id><title type=""text"">2772199343190529178-5408359458679310168-2</title><published>2018-11-06T16:44:09Z</published><updated>2018-11-06T16:44:09Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/2772199343190529178-5408359458679310168-2?api-version=2017-04""/><content type=""application/xml""><AppleRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>2772199343190529178-5408359458679310168-2</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken></AppleRegistrationDescription></content></entry>")
+                    });
 
             var registration = new AppleRegistrationDescription(AppleDeviceToken)
             {
@@ -160,16 +157,15 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidAppleTemplateRegistration_GetCreatedRegistrationBack()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/170448309501312030-7068010450960759587-1?api-version=2017-04</id><title type=""text"">170448309501312030-7068010450960759587-1</title><published>2018-11-06T16:56:12Z</published><updated>2018-11-06T16:56:12Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/170448309501312030-7068010450960759587-1?api-version=2017-04""/><content type=""application/xml""><AppleTemplateRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>170448309501312030-7068010450960759587-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken><BodyTemplate><![CDATA[{""aps"":{""alert"":""alert!""}}]]></BodyTemplate><Expiry i:nil=""true""/><TemplateName>Template Name</TemplateName><ApnsHeaders/></AppleTemplateRegistrationDescription></content></entry>")
-            };
-
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
                 .WithContent(
                     @"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><AppleTemplateRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken><BodyTemplate><![CDATA[{""aps"":{""alert"":""alert!""}}]]></BodyTemplate><Expiry i:nil=""true"" /><TemplateName>Template Name</TemplateName><ApnsHeaders /></AppleTemplateRegistrationDescription></content></entry>")
-                .Respond(_ => response);
+                .Respond(_ => 
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/170448309501312030-7068010450960759587-1?api-version=2017-04</id><title type=""text"">170448309501312030-7068010450960759587-1</title><published>2018-11-06T16:56:12Z</published><updated>2018-11-06T16:56:12Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/170448309501312030-7068010450960759587-1?api-version=2017-04""/><content type=""application/xml""><AppleTemplateRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>170448309501312030-7068010450960759587-1</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><DeviceToken>1111111111111111111111111111111111111111111111111111111111111111</DeviceToken><BodyTemplate><![CDATA[{""aps"":{""alert"":""alert!""}}]]></BodyTemplate><Expiry i:nil=""true""/><TemplateName>Template Name</TemplateName><ApnsHeaders/></AppleTemplateRegistrationDescription></content></entry>")
+                    });
 
             var registration =
                 new AppleTemplateRegistrationDescription(AppleDeviceToken, "{\"aps\":{\"alert\":\"alert!\"}}")
@@ -194,16 +190,15 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidBaiduNativeRegistration_GetCreatedRegistrationBack()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    @"")
-            };
-
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
                 .WithContent(
                     @"")
-                .Respond(_ => response);
+                .Respond(_ =>
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"")
+                    });
 
             var registration = new BaiduRegistrationDescription(BaiduUserId, BaiduChannelId, new[] {"tag1"})
             {
@@ -224,16 +219,15 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidBaiduTemplateRegistration_GetCreatedRegistrationBack()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    @"")
-            };
-
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
                 .WithContent(
                     @"")
-                .Respond(_ => response);
+                .Respond(_ => 
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"")
+                    });
 
             var registration = new BaiduTemplateRegistrationDescription(
                 BaiduUserId, 
@@ -260,16 +254,15 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidGcmNativeRegistration_GetCreatedRegistrationBack()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8504578834943685912-5323981290966071257-3?api-version=2017-04</id><title type=""text"">8504578834943685912-5323981290966071257-3</title><published>2018-11-07T12:44:57Z</published><updated>2018-11-07T12:44:57Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8504578834943685912-5323981290966071257-3?api-version=2017-04""/><content type=""application/xml""><GcmRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>8504578834943685912-5323981290966071257-3</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><GcmRegistrationId>gcm.registration.v2.123</GcmRegistrationId></GcmRegistrationDescription></content></entry>")
-            };
-
             WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
                 .WithContent(
                     @"<entry xmlns=""http://www.w3.org/2005/Atom""><content type=""application/xml""><GcmRegistrationDescription xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect""><RegistrationId i:nil=""true"" /><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><GcmRegistrationId>gcm.registration.v2.123</GcmRegistrationId></GcmRegistrationDescription></content></entry>")
-                .Respond(_ => response);
+                .Respond(_ => 
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            @"<entry a:etag=""W/&quot;1&quot;"" xmlns=""http://www.w3.org/2005/Atom"" xmlns:a=""http://schemas.microsoft.com/ado/2007/08/dataservices/metadata""><id>https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8504578834943685912-5323981290966071257-3?api-version=2017-04</id><title type=""text"">8504578834943685912-5323981290966071257-3</title><published>2018-11-07T12:44:57Z</published><updated>2018-11-07T12:44:57Z</updated><link rel=""self"" href=""https://sdk-sample-namespace.servicebus.windows.net/sdk-sample-nh/registrations/8504578834943685912-5323981290966071257-3?api-version=2017-04""/><content type=""application/xml""><GcmRegistrationDescription xmlns=""http://schemas.microsoft.com/netservices/2010/10/servicebus/connect"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><ETag>1</ETag><ExpirationTime>9999-12-31T23:59:59.999</ExpirationTime><RegistrationId>8504578834943685912-5323981290966071257-3</RegistrationId><Tags>tag1</Tags><PushVariables>{""var1"":""value1""}</PushVariables><GcmRegistrationId>gcm.registration.v2.123</GcmRegistrationId></GcmRegistrationDescription></content></entry>")
+                    });
 
             var registration = new GcmRegistrationDescription(GcmDeviceToken)
             {
