@@ -34,6 +34,8 @@ namespace Microsoft.Azure.NotificationHubs.Tests
 
         private const string AdmDeviceToken = "amzn1.adm-registration.v2.123";
         private const string AppleDeviceToken = "1111111111111111111111111111111111111111111111111111111111111111";
+        private const string BaiduUserId = "userId";
+        private const string BaiduChannelId = "channelId";
 
         private readonly IConfigurationRoot _configuration;
         private readonly NotificationHubClient _hubClient;
@@ -191,10 +193,20 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidBaiduNativeRegistration_GetCreatedRegistrationBack()
         {
-            var registration = new BaiduRegistrationDescription(_configuration["BaiduUserId"], _configuration["BaiduChannelId"], new[] { "tag1" });
-            registration.PushVariables = new Dictionary<string, string>()
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                {"var1", "value1"}
+                Content = new StringContent(
+                    @"")
+            };
+
+            WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(
+                    @"")
+                .Respond(_ => response);
+
+            var registration = new BaiduRegistrationDescription(BaiduUserId, BaiduChannelId, new[] {"tag1"})
+            {
+                PushVariables = new Dictionary<string, string> {{"var1", "value1"}}
             };
 
             var createdRegistration = await _hubClient.CreateRegistrationAsync(registration);
@@ -211,12 +223,25 @@ namespace Microsoft.Azure.NotificationHubs.Tests
         [Fact]
         public async Task CreateRegistrationAsync_PassValidBaiduTemplateRegistration_GetCreatedRegistrationBack()
         {
-            var registration = new BaiduTemplateRegistrationDescription(_configuration["BaiduUserId"], _configuration["BaiduChannelId"], "{\"title\":\"Title\",\"description\":\"Description\"}", new[] { "tag1" });
-            registration.PushVariables = new Dictionary<string, string>()
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                {"var1", "value1"}
+                Content = new StringContent(
+                    @"")
             };
-            registration.TemplateName = "Template Name";
+
+            WhenRequested(HttpMethod.Post, $"{BaseUri}/registrations")
+                .WithContent(
+                    @"")
+                .Respond(_ => response);
+
+            var registration = new BaiduTemplateRegistrationDescription(
+                BaiduUserId, 
+                BaiduChannelId, 
+                "{\"title\":\"Title\",\"description\":\"Description\"}",
+                new[] {"tag1"})
+            {
+                PushVariables = new Dictionary<string, string>() {{"var1", "value1"}}, TemplateName = "Template Name"
+            };
 
             var createdRegistration = await _hubClient.CreateRegistrationAsync(registration);
 
