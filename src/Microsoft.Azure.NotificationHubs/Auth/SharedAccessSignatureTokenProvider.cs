@@ -4,12 +4,12 @@
 // license information.
 //------------------------------------------------------------
 
+using System;
+using System.Text;
+using Microsoft.Azure.NotificationHubs.Common;
+
 namespace Microsoft.Azure.NotificationHubs.Auth
 {
-    using Common;
-    using System;
-    using System.Text;
-    
     internal class SharedAccessSignatureTokenProvider : TokenProvider
     {
         private const int MaxKeyNameLength = 256;
@@ -26,9 +26,9 @@ namespace Microsoft.Azure.NotificationHubs.Auth
             base(DefaultTokenTimeout - DefaultTokenRefreshTimeMargin)
         {
             var builder = new NotificationHubConnectionStringBuilder(connectionString);
-            this._keyName = builder.SharedAccessKeyName;
-            this._encodedSharedAccessKey = Encoding.UTF8.GetBytes(builder.SharedAccessKey);
-            this._tokenTimeToLive = DefaultTokenTimeout;
+            _keyName = builder.SharedAccessKeyName;
+            _encodedSharedAccessKey = Encoding.UTF8.GetBytes(builder.SharedAccessKey);
+            _tokenTimeToLive = DefaultTokenTimeout;
         }
 
         internal SharedAccessSignatureTokenProvider(string keyName, string sharedAccessKey)
@@ -63,9 +63,29 @@ namespace Microsoft.Azure.NotificationHubs.Auth
                     SRCore.ArgumentStringTooBig("sharedAccessKey", MaxKeyLength));
             }
 
-            this._encodedSharedAccessKey = Encoding.UTF8.GetBytes(sharedAccessKey);
-            this._keyName = keyName;
-            this._tokenTimeToLive = tokenTimeToLive;
+            _encodedSharedAccessKey = Encoding.UTF8.GetBytes(sharedAccessKey);
+            _keyName = keyName;
+            _tokenTimeToLive = tokenTimeToLive;
+        }
+
+        internal SharedAccessSignatureTokenProvider(
+            string keyName,
+            string sharedAccessKey,
+            TimeSpan tokenTimeToLive,
+            TokenScope tokenScope)
+            : base(true, true, tokenScope)
+        {
+            if (string.IsNullOrEmpty(keyName))
+                throw new ArgumentNullException(nameof(keyName));
+            if (keyName.Length > 256)
+                throw new ArgumentOutOfRangeException(nameof(keyName), SRCore.ArgumentStringTooBig((object)nameof(keyName), (object)256));
+            if (string.IsNullOrEmpty(sharedAccessKey))
+                throw new ArgumentNullException(nameof(sharedAccessKey));
+            if (sharedAccessKey.Length > 256)
+                throw new ArgumentOutOfRangeException(nameof(sharedAccessKey), SRCore.ArgumentStringTooBig((object)nameof(sharedAccessKey), (object)256));
+            _encodedSharedAccessKey = Encoding.UTF8.GetBytes(sharedAccessKey);
+            _keyName = keyName;
+            _tokenTimeToLive = tokenTimeToLive;
         }
 
         /// <summary>
@@ -97,7 +117,7 @@ namespace Microsoft.Azure.NotificationHubs.Auth
 
         private string BuildSignature(string targetUri)
         {
-            return SharedAccessSignatureBuilder.BuildSignature(this._keyName, this._encodedSharedAccessKey, targetUri, this._tokenTimeToLive);
+            return SharedAccessSignatureBuilder.BuildSignature(_keyName, _encodedSharedAccessKey, targetUri, _tokenTimeToLive);
         }
     }
 }

@@ -13,10 +13,13 @@ using Microsoft.Azure.NotificationHubs.Messaging;
 
 namespace Microsoft.Azure.NotificationHubs
 {
+    /// <summary>
+    /// Represents a namespace manager
+    /// </summary>
     public sealed class NamespaceManager
     {
-        readonly NamespaceManagerSettings _settings;
-        readonly IEnumerable<Uri> _addresses;
+        private readonly NamespaceManagerSettings _settings;
+        private readonly IEnumerable<Uri> _addresses;
 
         /// <summary> Gets the first namespace base address. </summary>
         /// <value> The namespace base address. </value>

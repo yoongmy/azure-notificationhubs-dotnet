@@ -4,17 +4,18 @@
 // license information.
 //------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Net;
+using System.Security;
+using System.Text.RegularExpressions;
+using Microsoft.Azure.NotificationHubs.Auth;
+using System.Configuration;
+
 namespace Microsoft.Azure.NotificationHubs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Configuration;
-    using System.Globalization;
-    using System.Security;
-    using System.Text.RegularExpressions;
-    using Microsoft.Azure.NotificationHubs.Auth;
-
     internal class KeyValueConfigurationManager
     {
         public const string ServiceBusConnectionKeyName = @"Microsoft.Azure.NotificationHubs.ConnectionString";
@@ -38,12 +39,12 @@ namespace Microsoft.Azure.NotificationHubs
         internal const string ValueSeparator = @",";
         internal const string KeyValueSeparator = @"=";
         internal const string KeyDelimiter = @";";
-        const string KeyAttributeEnumRegexString = @"(" +
+        private const string KeyAttributeEnumRegexString = @"(" +
                                                    EndpointConfigName + @"|" +
                                                    SharedAccessKeyName + @"|" +
                                                    EntityPathConfigName + @"|" +
                                                    SharedAccessValueName + @")";
-        const string KeyDelimiterRegexString = KeyDelimiter + KeyAttributeEnumRegexString + KeyValueSeparator;
+        private const string KeyDelimiterRegexString = KeyDelimiter + KeyAttributeEnumRegexString + KeyValueSeparator;
 
         // This is not designed to catch any custom parsing logic that SB has. We rely on SB to do the 
         // actual string validation. Also note the following characteristics:
@@ -58,24 +59,24 @@ namespace Microsoft.Azure.NotificationHubs
 
         public KeyValueConfigurationManager(string connectionString)
         {
-            this.Initialize(connectionString);
+            Initialize(connectionString);
         }
 
         private void Initialize(string connection)
         {
-            this.connectionString = connection;
-            this.connectionProperties = CreateNameValueCollectionFromConnectionString(this.connectionString);
+            connectionString = connection;
+            connectionProperties = CreateNameValueCollectionFromConnectionString(connectionString);
         }
 
-        public string this[string key] => this.connectionProperties[key];
+        public string this[string key] => connectionProperties[key];
 
         private static NameValueCollection CreateNameValueCollectionFromConnectionString(string connectionString)
         {
             var settings = new NameValueCollection();
             if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                var connection = KeyValueConfigurationManager.KeyDelimiter + connectionString;
-                var keyValues = Regex.Split(connection, KeyValueConfigurationManager.KeyDelimiterRegexString, RegexOptions.IgnoreCase);
+                var connection = KeyDelimiter + connectionString;
+                var keyValues = Regex.Split(connection, KeyDelimiterRegexString, RegexOptions.IgnoreCase);
                 if (keyValues.Length > 0)
                 {
                     // Regex.Split returns the array that include part of the delimiters, so it will look 
@@ -122,7 +123,7 @@ namespace Microsoft.Azure.NotificationHubs
 
         public void Validate()
         {
-            if (string.IsNullOrWhiteSpace(this.connectionProperties[EndpointConfigName]))
+            if (string.IsNullOrWhiteSpace(connectionProperties[EndpointConfigName]))
             {
                 throw new ConfigurationException(SRClient.AppSettingsConfigMissingSetting(EndpointConfigName, ServiceBusConnectionKeyName));
             }
@@ -130,21 +131,21 @@ namespace Microsoft.Azure.NotificationHubs
 
         public NamespaceManager CreateNamespaceManager()
         {
-            this.Validate();
+            Validate();
 
-            string operationTimeout = this.connectionProperties[OperationTimeoutConfigName];
-            IEnumerable<Uri> endpoints = GetEndpointAddresses(this.connectionProperties[EndpointConfigName], this.connectionProperties[ManagementPortConfigName]);
-            IEnumerable<Uri> stsEndpoints = GetEndpointAddresses(this.connectionProperties[StsEndpointConfigName], null);
-            string issuerName = this.connectionProperties[SharedSecretIssuerConfigName];
-            string issuerKey = this.connectionProperties[SharedSecretValueConfigName];
-            string sasKeyName = this.connectionProperties[SharedAccessKeyName];
-            string sasKey = this.connectionProperties[SharedAccessValueName];
-            string windowsDomain = this.connectionProperties[WindowsDomainConfigName];
-            string windowsUsername = this.connectionProperties[WindowsUsernameConfigName];
-            SecureString windowsPassword = this.GetWindowsPassword();
-            string oauthDomain = this.connectionProperties[OAuthDomainConfigName];
-            string oauthUsername = this.connectionProperties[OAuthUsernameConfigName];
-            SecureString oauthPassword = this.GetOAuthPassword();
+            string operationTimeout = connectionProperties[OperationTimeoutConfigName];
+            IEnumerable<Uri> endpoints = GetEndpointAddresses(connectionProperties[EndpointConfigName], connectionProperties[ManagementPortConfigName]);
+            IEnumerable<Uri> stsEndpoints = GetEndpointAddresses(connectionProperties[StsEndpointConfigName], null);
+            string issuerName = connectionProperties[SharedSecretIssuerConfigName];
+            string issuerKey = connectionProperties[SharedSecretValueConfigName];
+            string sasKeyName = connectionProperties[SharedAccessKeyName];
+            string sasKey = connectionProperties[SharedAccessValueName];
+            string windowsDomain = connectionProperties[WindowsDomainConfigName];
+            string windowsUsername = connectionProperties[WindowsUsernameConfigName];
+            SecureString windowsPassword = GetWindowsPassword();
+            string oauthDomain = connectionProperties[OAuthDomainConfigName];
+            string oauthUsername = connectionProperties[OAuthUsernameConfigName];
+            SecureString oauthPassword = GetOAuthPassword();
 
             try
             {
@@ -187,7 +188,7 @@ namespace Microsoft.Azure.NotificationHubs
 
         private IList<Uri> GetEndpointAddresses()
         {
-            return GetEndpointAddresses(this.connectionProperties[EndpointConfigName], this.connectionProperties[RuntimePortConfigName]);
+            return GetEndpointAddresses(connectionProperties[EndpointConfigName], connectionProperties[RuntimePortConfigName]);
         }
 
         public static IList<Uri> GetEndpointAddresses(string uriEndpoints, string portString)
@@ -224,10 +225,10 @@ namespace Microsoft.Azure.NotificationHubs
             return addresses;
         }
 
-        SecureString GetSecurePassword(string configName)
+        private SecureString GetSecurePassword(string configName)
         {
             SecureString password = null;
-            string passwordString = this.connectionProperties[configName];
+            string passwordString = connectionProperties[configName];
             if (!string.IsNullOrWhiteSpace(passwordString))
             {
                 unsafe
@@ -241,6 +242,69 @@ namespace Microsoft.Azure.NotificationHubs
             }
 
             return password;
+        }
+
+        internal TokenProvider CreateTokenProvider()
+        {
+            IList<Uri> endpointAddresses = GetEndpointAddresses(connectionProperties["StsEndpoint"], (string)null);
+            string connectionProperty1 = connectionProperties["SharedSecretIssuer"];
+            string connectionProperty2 = connectionProperties["SharedSecretValue"];
+            string connectionProperty3 = connectionProperties["SharedAccessKeyName"];
+            string connectionProperty4 = connectionProperties["SharedAccessKey"];
+            string connectionProperty5 = connectionProperties["WindowsDomain"];
+            string connectionProperty6 = connectionProperties["WindowsUsername"];
+            SecureString windowsPassword1 = GetWindowsPassword();
+            string connectionProperty7 = connectionProperties["OAuthDomain"];
+            string connectionProperty8 = connectionProperties["OAuthUsername"];
+            SecureString oauthPassword1 = GetOAuthPassword();
+            string issuerName = connectionProperty1;
+            string issuerKey = connectionProperty2;
+            string sharedAccessKeyName = connectionProperty3;
+            string sharedAccessKey = connectionProperty4;
+            string windowsDomain = connectionProperty5;
+            string windowsUser = connectionProperty6;
+            SecureString windowsPassword2 = windowsPassword1;
+            string oauthDomain = connectionProperty7;
+            string oauthUser = connectionProperty8;
+            SecureString oauthPassword2 = oauthPassword1;
+            return CreateTokenProvider((IEnumerable<Uri>)endpointAddresses, issuerName, issuerKey, sharedAccessKeyName, sharedAccessKey, windowsDomain, windowsUser, windowsPassword2, oauthDomain, oauthUser, oauthPassword2);
+        }
+
+        private static TokenProvider CreateTokenProvider(
+            IEnumerable<Uri> stsEndpoints,
+            string issuerName,
+            string issuerKey,
+            string sharedAccessKeyName,
+            string sharedAccessKey,
+            string windowsDomain,
+            string windowsUser,
+            SecureString windowsPassword,
+            string oauthDomain,
+            string oauthUser,
+            SecureString oauthPassword)
+        {
+            if (!string.IsNullOrWhiteSpace(sharedAccessKey))
+                return TokenProvider.CreateSharedAccessSignatureTokenProvider(sharedAccessKeyName, sharedAccessKey);
+            if (string.IsNullOrWhiteSpace(issuerName))
+            {
+                int num = stsEndpoints == null ? 0 : (stsEndpoints.Any<Uri>() ? 1 : 0);
+                bool flag1 = !string.IsNullOrWhiteSpace(windowsUser) && windowsPassword != null && windowsPassword.Length > 0;
+                bool flag2 = !string.IsNullOrWhiteSpace(oauthUser) && oauthPassword != null && oauthPassword.Length > 0;
+                if (num == 0)
+                    return (TokenProvider)null;
+                if (flag2)
+                {
+                    NetworkCredential credential = string.IsNullOrWhiteSpace(oauthDomain) ? new NetworkCredential(oauthUser, oauthPassword) : new NetworkCredential(oauthUser, oauthPassword, oauthDomain);
+                    return TokenProvider.CreateOAuthTokenProvider(stsEndpoints, credential);
+                }
+                if (!flag1)
+                    return TokenProvider.CreateWindowsTokenProvider(stsEndpoints);
+                NetworkCredential credential1 = string.IsNullOrWhiteSpace(windowsDomain) ? new NetworkCredential(windowsUser, windowsPassword) : new NetworkCredential(windowsUser, windowsPassword, windowsDomain);
+                return TokenProvider.CreateWindowsTokenProvider(stsEndpoints, credential1);
+            }
+            if (stsEndpoints != null && stsEndpoints.Any<Uri>())
+                return TokenProvider.CreateSharedSecretTokenProvider(issuerName, issuerKey, stsEndpoints.First<Uri>());
+            return TokenProvider.CreateSharedSecretTokenProvider(issuerName, issuerKey);
         }
     }
 }
